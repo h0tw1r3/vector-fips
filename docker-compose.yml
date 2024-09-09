@@ -1,0 +1,16 @@
+---
+services:
+  vector:
+    build:
+      context: .
+      args:
+        version: ${version}
+        base_image: ${base_image}
+    image: vector:fips
+    entrypoint: /entrypoint.sh
+    ports:
+      - 5000:5000
+      - 8686:8686
+    volumes:
+      - ./vector:/etc/vector
+      - ./entrypoint.sh:/entrypoint.sh

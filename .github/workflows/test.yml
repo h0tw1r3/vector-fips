@@ -1,0 +1,42 @@
+name: Test
+run-name: >
+  Test
+  ${{ inputs.version && format('version={0}', inputs.version) || '' }}
+  ${{ inputs.base && format('base={0}', inputs.base) || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Vector version
+        type: string
+        default: "0.40.1"
+      base:
+        type: choice
+        description: Base image
+        options:
+        - ghcr.io/h0tw1r3/alpine-fips:3.20.3
+        - docker.io/alpine:3.20.3
+
+jobs:
+  test:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup latest docker
+        uses: crazy-max/ghaction-setup-docker@v3
+        with:
+          version: v27.1.1
+          daemon-config: '{ "features": { "containerd-snapshotter": true } }'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Compose
+        run: |-
+          echo 'version="${{ inputs.version }}"' > .env
+          echo 'base_image="${{ inputs.base }}"' >> .env
+          docker compose --progress=plain up
+          docker compose --progress=plain down
